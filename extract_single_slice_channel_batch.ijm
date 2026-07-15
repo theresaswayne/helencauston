@@ -1,17 +1,19 @@
 //@File(label = "Input directory", style = "directory") inputDir
 //@File(label = "Output directory", style = "directory") outputDir
-//@String (label = "File suffix", value = ".nd2") fileSuffix
-//@ int(label="Channel to extract", style = "spinner") Channel_1
-//@ int(label="Slice to extract", style = "spinner") Slice_1
+//@String (label = "File suffix", value = ".ome.tiff") fileSuffix
+//@ int(label="Channel to extract", style = "spinner", value=3) Channel_1
+//@ int(label="Slice to extract", style = "spinner", value = 11) Slice_1
 
-// ImageJ/Fiji script to process a batch of images
-// Theresa Swayne, 2026
+// ImageJ/Fiji script to extract a single channel and slice 
+//    from a batch of multichannel stacks
+// 	Useful for pulling transmitted light image for Cellpose segmentation
+// Theresa Swayne, 2026 with thanks to Emily Jie-Ning Yang for extension handling
+// 
 //  -------- Suggested text for acknowledgement -----------
 //   "These studies used the Confocal and Specialized Microscopy Shared Resource 
 //   of the Herbert Irving Comprehensive Cancer Center at Columbia University, 
 //   funded in part through the NIH/NCI Cancer Center Support Grant P30CA013696."
 
-//	Limitation -- cannot have >1 dots in the filename
 // 	
 
 // ---- Setup ----
@@ -97,13 +99,18 @@ function processFile(inputFolder, outputFolder, fileName, fileNumber, channel, s
 
 	
 	// open the file
-	run("Bio-Formats", "open=&path");
-	rename("orig"); // renaming avoids issues with complicated extensions
-
-	run("Make Substack...", "channels="+channel+" slices="+ slice);
-	substackName = "orig-1";
-	selectWindow(substackName);
 	
+	// --- option 1 -- open entire file and make a substack
+	//run("Bio-Formats", "open=&path");
+	//rename("orig"); // renaming avoids issues with complicated extensions
+
+	//run("Make Substack...", "channels="+channel+" slices="+ slice);
+	//substackName = "orig-1";
+	//selectWindow(substackName);
+
+	// --- option 2 --- open a subset directly
+	run("Bio-Formats", "open=&path color_mode=Default series_1 specify_range c_begin=&channel c_end=&channel c_step=1 z_begin=&slice z_end=&slice z_step=1");
+			
 	// save the output
 	outputName = basename + "_c"+channel+"_s"+slice+".tif";
 	saveAs("tiff", outputFolder + File.separator + outputName);
